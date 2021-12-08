@@ -58,16 +58,18 @@ void IPOH(int ind){
     vector<set<pair<int, int> > > interactions(v[ind].first);
     vector<int> target;
     // 現在のところt=2固定なのでbit全探索の意味はない
-    for(int i=0;i<(1<<t);i++){
+    // indより前のものについて(t-1)個組の組合せを列挙する
+    for(int i=0;i<(1<<ind);i++){
         if(popcount(i)==t-1){
             cerr<<i<<endl;
             target.push_back(i);
         }
     }
+    // それらについて、全値の集合を調べる
     for(int param=0;param<v[ind].first;param++){
         // vector<pair<int,int>> oneinteraction;
         for(int i=0;i<target.size();i++){
-            for(int bit=0;bit<t;bit++){
+            for(int bit=0;bit<ind;bit++){
                 if(target[i]&(1<<bit)){
                     for(int j=0;j<v[bit].first;j++){
                         interactions[param].insert(make_pair(v[bit].second, j));
