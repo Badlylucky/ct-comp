@@ -53,7 +53,7 @@ void initGenerate(int cnt, vector<int> val){
     }
 }
 // Algorithm: IPO_Hを実行する
-void IPOH(int ind){
+vector<set<pair<int, int> > > IPOH(int ind){
     // interactionのうちindが絡むものを全て列挙する
     vector<set<pair<int, int> > > interactions(v[ind].first);
     vector<int> target;
@@ -121,6 +121,39 @@ void IPOH(int ind){
         }
     }
     cerr<<"second edit done"<<endl;
+    return interactions;
+}
+// Algorithm: IPO_Vを実行する
+void IPOV(int ind, vector<set<pair<int, int> > > &interactions){
+    // すべてのinteractionについて調べる
+    vector<vector<int> > addpair;
+    for(int param=0;param<v[ind].first;param++){
+        // 全列挙を行う
+        addpair.clear();
+        for(auto itr = interactions[param].begin();itr != interactions[param].end(); itr++){
+            // 過去の追加列を全て調べて、あればそこに入れる
+            bool newflag = true;
+            for(int i=0;i<addpair.size();i++){
+                if(addpair[i][itr->first] == -1) {
+                    addpair[i][itr->first] = itr->second;
+                    newflag = false;
+                    break;
+                }
+            }
+            // 入れられる場所がなければ新しく作る
+            if(newflag) {
+                vector<int> t(k,-1);
+                t[v[ind].second] = param;
+                t[itr->first] = itr->second;
+                addpair.push_back(t);
+            }
+        }
+        // 全列挙が終わったら突っ込む
+        for(int i=0;i<addpair.size();i++){
+            ans.push_back(addpair[i]);
+        }
+    }
+    return;
 }
 void solve(){
     // count all interactions
@@ -134,7 +167,8 @@ void solve(){
     cerr<<"init generate done"<<endl;
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
-        IPOH(i);
+        vector<set<pair<int, int> > > interactions = IPOH(i);
+        IPOV(i, interactions);
     }
 }
 int main(){
