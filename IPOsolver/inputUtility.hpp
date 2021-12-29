@@ -17,3 +17,4 @@ testSuite readFile(string path);
 
 // CSVの形で結果を出力する
 void csvOutput(const string path, const testSuite &suite, const vector<vector<int>> &ans);
+void csvOutput(const string path, const vector<vector<int>> &ans);

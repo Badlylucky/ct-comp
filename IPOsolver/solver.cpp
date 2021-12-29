@@ -238,14 +238,18 @@ void solve(){
     reverse(v,v+k);
     // 大きいものt個の組み合わせを全て割り当てる
     initGenerate();
-    for(int i=0;i<ans.size();i++){
-        outputline(ans[i]);
-    }
     // cerr<<"init generate done"<<endl;
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
         vector<set<vi> > interactions = IPOH(i);
         IPOV(i, interactions);
+    }
+    for(int i=0;i<ans.size();i++){
+        for(int j=0;j<ans[i].size();j++){
+            if(ans[i][j] == -1){
+                ans[i][j] = 0;
+            }
+        }
     }
 }
 int main(int argc, char** argv){
@@ -282,7 +286,14 @@ int main(int argc, char** argv){
     // }
     // for submit
     cout<<ans.size()<<endl;
-    string outputFile = suites.testName+".csv";
-    csvOutput(outputFile, suites, ans);
+    string outputFile;
+    if(arg.find("ACTS") != string::npos){
+        outputFile = "/Users/k-takemr/ct-comp/IPOsolver/output/ACTS/" + suites.testName;
+        outputFile += ".txt";
+    }else{
+        outputFile = "/Users/k-takemr/ct-comp/IPOsolver/output/CTWedge/" + suites.testName;
+        outputFile += ".txt";
+    }
+    csvOutput(outputFile, ans);
     return 0;
 }
