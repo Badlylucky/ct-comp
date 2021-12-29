@@ -71,11 +71,16 @@ testSuite readACTS(string path){
         if(linestr.size() < 2){
             break;
         }
-        string tmplinestr = split(linestr, ':')[1];
+        vector<string> splitparam = split(linestr, ':');
+        // parameter name
+        string paramName = strip(split(splitparam[0], '(')[0]);
+        // parameter values
+        string tmplinestr = splitparam[1];
         vector<string> testcase = split(tmplinestr, ','); // スペース付きのテストケース名に分割
         for(int i=0;i<testcase.size();i++){
             testcase[i] = strip(testcase[i]); // スペースを削除
         }
+        ret.paramNames.push_back(paramName);
         testcaseNames.push_back(testcase);
     }
     ret.caseName = testcaseNames;
@@ -95,7 +100,11 @@ testSuite readCTWedge(string path){
         if(linestr.size() < 2){
             break;
         }
-        string tmplinestr = strip(split(linestr, ':')[1]);
+        vector<string> splitparam = split(linestr, ':');
+        // parameter name
+        string paramName = strip(splitparam[0]);
+        // parameter values
+        string tmplinestr = strip(splitparam[1]);
         vector<string> testcase;
         // Booleanかどうかを判定する
         if (tmplinestr[0] == '{'){
@@ -109,6 +118,7 @@ testSuite readCTWedge(string path){
             testcase.emplace_back("true");
             testcase.emplace_back("false");
         }
+        ret.paramNames.push_back(paramName);
         testcaseNames.push_back(testcase);
     }
     ret.caseName = testcaseNames;
@@ -133,6 +143,32 @@ testSuite readFile(string path){
     }
     return ret;
 }
+
+void csvOutput(const string path, const testSuite &suite, const vector<vector<int>> &ans){
+    ofstream ofs(path);
+    // output param name
+    for(int i=0;i<suite.paramNames.size();i++){
+        ofs<<suite.paramNames[i];
+        if(i == suite.paramNames.size() - 1){
+            ofs<<endl;
+        }else{
+            ofs<<",";
+        }
+    }
+    // output Testcases
+    for(int i=0;i<ans.size();i++){
+        for(int j=0;j<ans[i].size();j++){
+            ofs<<suite.caseName[j][ans[i][j]];
+            if(j < ans[i].size() - 1){
+                ofs<<",";
+            }
+        }
+        if(i < ans.size() - 1){
+            ofs<<endl;
+        }
+    }
+}
+
 // for test
 // int main(){
 //     string path = "../benchmarks/CTWedge/MCA_2.ctw";

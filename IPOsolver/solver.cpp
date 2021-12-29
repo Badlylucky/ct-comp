@@ -275,9 +275,14 @@ int main(int argc, char** argv){
     // solve
     solve();
     // output
+    // for test
+    // cout<<ans.size()<<endl;
+    // for(int i=0;i<ans.size();i++){
+    //     outputline(ans[i]);
+    // }
+    // for submit
     cout<<ans.size()<<endl;
-    for(int i=0;i<ans.size();i++){
-        outputline(ans[i]);
-    }
+    string outputFile = suites.testName+".csv";
+    csvOutput(outputFile, suites, ans);
     return 0;
 }

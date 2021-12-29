@@ -7,9 +7,13 @@ using namespace std;
 class testSuite{
     public:
     string testName = "failed to open";
+    vector<string> paramNames;
     vector<vector<string>> caseName;
     void outputInfo();
 };
 
 // 指定されたファイルをテストケースとして読み込む
 testSuite readFile(string path);
+
+// CSVの形で結果を出力する
+void csvOutput(const string path, const testSuite &suite, const vector<vector<int>> &ans);
