@@ -285,11 +285,11 @@ int main(int argc, char** argv){
     cout<<ans.size()<<endl;
     string outputFile;
     if(arg.find("ACTS") != string::npos){
-        outputFile = "/Users/k-takemr/ct-comp/IPOsolver/output/ACTS/" + suites.testName;
-        outputFile += ".txt";
+        outputFile = "./" + suites.testName;
+        outputFile += ".csv";
     }else{
-        outputFile = "/Users/k-takemr/ct-comp/IPOsolver/output/CTWedge/" + suites.testName;
-        outputFile += ".txt";
+        outputFile = "./" + suites.testName;
+        outputFile += ".csv";
     }
     csvOutput(outputFile, ans);
     return 0;

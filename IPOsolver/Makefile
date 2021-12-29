@@ -1,5 +1,5 @@
 CC = g++-11
-CFLAGS = --sysroot=`xcrun --show-sdk-path` -O2
+CFLAGS = -O2
 
 ALL: solver.o inputUtil.o
 	$(CC) $(CFLAGS) -o IPOsolver solver.o inputUtil.o
