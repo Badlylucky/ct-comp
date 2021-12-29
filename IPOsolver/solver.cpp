@@ -104,7 +104,7 @@ vector<set<vi> > enumerateInteractions(int ind) {
 vector<set<vi> > IPOH(int ind){
     // interactionのうちindが絡むものを全て列挙する
     vector<set<vi> > interactions = enumerateInteractions(ind);
-    cerr<<"kazoeage done"<<endl;
+    // cerr<<"kazoeage done"<<endl;
     // 最初のv[ind]個は順番に割り付けを行う
     for(int i=0;i<v[ind].first;i++){
         ans[i][v[ind].second]=i;
@@ -123,7 +123,7 @@ vector<set<vi> > IPOH(int ind){
             }
         }
     }
-    cerr<<"first edit done"<<endl;
+    // cerr<<"first edit done"<<endl;
     // それ以降は貪欲に割り付ける
     for(int i=v[ind].first;i<ans.size();i++){
         int maxparam=-1;
@@ -156,7 +156,7 @@ vector<set<vi> > IPOH(int ind){
         }
         // 決まった値で更新する
         ans[i][v[ind].second]=maxparam;
-        cerr<<"maxparam done"<<endl;
+        // cerr<<"maxparam done"<<endl;
         // 満たされたinteractionの削除を行う
         int kumiawase = (1<<(t-1)) - 1;
         for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
@@ -172,7 +172,7 @@ vector<set<vi> > IPOH(int ind){
             }
         }
     }
-    cerr<<"second edit done"<<endl;
+    // cerr<<"second edit done"<<endl;
     return interactions;
 }
 // 指定したテストケースにインタラクションを入れることができるかチェックする
@@ -241,24 +241,40 @@ void solve(){
     for(int i=0;i<ans.size();i++){
         outputline(ans[i]);
     }
-    cerr<<"init generate done"<<endl;
+    // cerr<<"init generate done"<<endl;
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
         vector<set<vi> > interactions = IPOH(i);
         IPOV(i, interactions);
     }
 }
-int main(){
+int main(int argc, char** argv){
     // input
     // for test
-    cin>>t>>k;
-    for(int i=0;i<k;i++){
-        int tmp;
-        cin>>tmp;
-        v[i]=make_pair(tmp,i);
+    // cin>>t>>k;
+    // for(int i=0;i<k;i++){
+    //     int tmp;
+    //     cin>>tmp;
+    //     v[i]=make_pair(tmp,i);
+    // }
+    // for submit
+    if (argc != 3) {
+        cerr<<"Usage: IPOsolver (strength) (input_file_path)"<<endl;
+        return 1;
     }
+    // read strength
+    string arg = argv[1];
+    t = stoi(arg);
+    // read path
+    arg = argv[2];
+    testSuite suites = readFile(arg);
+    k = suites.caseName.size();
+    for(int i=0;i<k;i++){
+        v[i] = make_pair(suites.caseName[i].size(), i);
+    }
+    // solve
     solve();
-    // ouviut
+    // output
     cout<<ans.size()<<endl;
     for(int i=0;i<ans.size();i++){
         outputline(ans[i]);
