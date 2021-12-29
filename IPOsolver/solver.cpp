@@ -247,6 +247,14 @@ void solve(){
         vector<set<vi> > interactions = IPOH(i);
         IPOV(i, interactions);
     }
+    // 埋まっていないところをテキトーに埋める
+    for(int i=0;i<ans.size();i++){
+        for(int j=0;j<ans[i].size();j++){
+            if(ans[i][j] == -1){
+                ans[i][j] = 0;
+            }
+        }
+    }
 }
 int main(int argc, char** argv){
     // input
