@@ -231,9 +231,6 @@ void solve(){
     reverse(v,v+k);
     // 大きいものt個の組み合わせを全て割り当てる
     initGenerate();
-    for(int i=0;i<ans.size();i++){
-        outputline(ans[i]);
-    }
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
         vector<set<vi> > interactions = IPOH(i);
