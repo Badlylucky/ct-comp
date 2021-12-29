@@ -6,8 +6,7 @@
 #include<iterator>
 #include<tuple>
 using namespace std;
-using ip=pair<int,int>;
-using tp=tuple<ip,ip,ip,ip,ip,ip,ip,ip>;
+using vi=vector<int>;
 
 vector<vector<int> > ans;
 int t=2;
@@ -27,31 +26,6 @@ int next_combination(int sub) {
     int x = sub & -sub, y = sub + x;
     return (((sub & ~y) / x) >> 1) | y;
 }
-tp generatetuple(){
-    return tp(ip(-1,-1), ip(-1,-1), ip(-1,-1), ip(-1,-1), ip(-1,-1), ip(-1,-1), ip(-1,-1), ip(-1,-1));
-}
-ip getelement(const tp &t, const int index){
-    switch(index){
-        case 0:
-        return get<0>(t);
-        case 1:
-        return get<1>(t);
-        case 2:
-        return get<2>(t);
-        case 3:
-        return get<3>(t);
-        case 4:
-        return get<4>(t);
-        case 5:
-        return get<5>(t);
-        case 6:
-        return get<6>(t);
-        case 7:
-        return get<7>(t);
-        default:
-        return ip(-1,-1);
-    }
-}
 void outputline(vector<int> &line){
     for(int i=0;i<line.size();i++){
         cout<<line[i];
@@ -64,71 +38,92 @@ void outputline(vector<int> &line){
     return;
 }
 //最初のt個分の組み合わせを決定し、テストケースを生成する
-void initGenerate(int cnt, vector<int> val){
-    if(cnt==0){
-        vector<int> tmp(k,-1);
-        for(int i=0;i<val.size();i++){
-            tmp[v[i].second]=val[i];
+void initGenerate(){
+    // 同値な言い換え
+    int now = 1;
+    for(int i = 0;i < t;++i){
+        now *= v[i].first;
+    }
+    for(int choice = 0;choice < now;++choice){
+        vector<int> cur = vi(k,-1);
+        int tmpChoice = choice;
+        for(int q = 0;q < t;++q){
+            cur[v[q].second] = tmpChoice % v[q].first;
+            tmpChoice /= v[q].first;
         }
-        ans.push_back(tmp);
-        return;
-    }else{
-        for(int i=0;i<v[t-cnt].first;i++){
-            vector<int> cpy;
-            copy(val.begin(),val.end(),back_inserter(cpy));
-            cpy.push_back(i);
-            initGenerate(cnt-1,cpy);
-        }
+        ans.push_back(cur);
     }
 }
-// t-1個分の組み合わせを全列挙する。initGenerateとほぼ同じ
-void enumerateCombination(int cnt, vector<int> kumi, vector<int> val){
-    if(cnt == 0){
-        //
-    }else{
-        //
+// t-1個分の組み合わせを全列挙する。
+// cnt: 中間変数
+// kumi: どの値を使うか
+// val: 現在収容している組合せ
+void enumerateCombination(const vector<int> &kumi, vector<vector<int>> &ret){
+    int now = 1;
+    for(int i=0;i<kumi.size();i++){
+        now *= v[kumi[i]].first;
     }
+    for(int choice = 0;choice < now;++choice){
+        vector<int> cur = vi(k, -1);
+        int tmpChoice = choice;
+        for(int q=0;q<kumi.size();q++){
+            cur[v[kumi[q]].second] = tmpChoice % v[kumi[q]].first;
+            tmpChoice /= v[kumi[q]].first;
+        }
+        ret.push_back(cur);
+    }
+    return;
 }
-vector<set<tp> > enumerateInteractions(int ind) {
-    vector<set<tp>> interactions(v[ind].first);
+vector<set<vi> > enumerateInteractions(int ind) {
+    vector<set<vi>> interactions(v[ind].first);
     vector<int> target;
-    // 現在のところt=2固定なのでbit全探索の意味はない
     // indより前のものについて(t-1)個組の組合せを列挙する
     int i = (1<<(t-1)) - 1;
     for(;i<(1<<ind);i = next_combination(i)){
-        // cerr<<i<<endl;
-        target.push_back(i);
-        for(int param=0;param<v[ind].first;param++){
-            for(int bit=0;bit<ind;bit++){
-            // ここが複数個必要
-                if(target[i]&(1<<bit)){
-                    for(int j=0;j<v[bit].first;j++){
-                        // 要素の追加はvの並び順で行う
-                        tp newt = generatetuple();
-                        get<0>(newt) = ip(v[bit].second, j);
-                        interactions[param].insert(newt);
-                    }
-                }
+        target.clear();
+        // 得られたbit列をtargetに分割する
+        for(int bit=0;bit<ind;bit++){
+            if(i&(1<<bit)){
+                target.push_back(bit);
+            }
+        }
+        // targetをもとにenumetrateCombinationを呼び出す
+        vector<vector<int>> ret;
+        enumerateCombination(target, ret);
+        // retとtargetから挿入するinteractionを列挙する
+        for(int i=0;i<ret.size();i++){
+            vi tmp = vi(k,-1);
+            for(int j=0;j<ret[i].size();j++){
+                tmp[target[j]] = ret[i][j];
+            }
+            // interactionの復元が終わったら挿入する
+            for(int j=0;j<v[ind].first;j++){
+                interactions[j].insert(tmp);
             }
         }
     }
     return interactions;
 }
 // Algorithm: IPO_Hを実行する
-vector<set<tp> > IPOH(int ind){
+vector<set<vi> > IPOH(int ind){
     // interactionのうちindが絡むものを全て列挙する
-    vector<set<tp> > interactions = enumerateInteractions(ind);
+    vector<set<vi> > interactions = enumerateInteractions(ind);
     cerr<<"kazoeage done"<<endl;
     // 最初のv[ind]個は順番に割り付けを行う
     for(int i=0;i<v[ind].first;i++){
         ans[i][v[ind].second]=i;
         // 満たされたinteractionの削除を行う
-        for(int j=0;j<k;j++){
-            tp newt = generatetuple();
-            // ここは探索の必要がある
-            get<0>(newt) = ip(j, ans[i][j]);
-            if(ans[i][j]!=-1 && interactions[i].count(newt)){
-                interactions[i].erase(newt);
+        int kumiawase = (1<<(t-1)) - 1;
+        for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+            vi interaction = vi(k,-1);
+            for(int bit=0;bit<ind;bit++){
+                if((kumiawase&(1<<bit)) == 0){
+                    continue;
+                }
+                interaction[v[bit].second] = ans[i][v[bit].second];
+            }
+            if(interactions[i].count(interaction)){
+                interactions[i].erase(interaction);
             }
         }
     }
@@ -139,17 +134,24 @@ vector<set<tp> > IPOH(int ind){
         int maxparam=-1;
         int maxcnt=-1;
         // パラメータ全てについて関連するinteractionを列挙
+        // i番目のテストケースについて、パラメータjをv[ind].secondに割り当てる
+        // それまでにあるのはjテストケース
         for(int j=0;j<v[ind].first;j++){
             int cnt=0;
-            for(int l=0;l<k;l++){
-                tp newt = generatetuple();
-                // ここは探索の必要がある
-                get<0>(newt) = ip(l, ans[i][l]);
-                if(ans[i][l]!=-1 && interactions[j].count(newt)){
+            int kumiawase = (1<<(t-1)) - 1;
+            for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+                vi interaction = vi(k,-1);
+                for(int bit=0;bit<ind;bit++){
+                    if((kumiawase&(1<<bit)) == 0){
+                        continue;
+                    }
+                    interaction[v[bit].second] = ans[i][v[bit].second];
+                }
+                if(interactions[j].count(interaction)){
                     cnt++;
                 }
             }
-            // cerr<<cnt<<endl;
+            cerr<<cnt<<endl;
             if(cnt>maxcnt){
                 maxcnt=cnt;
                 maxparam=j;
@@ -159,12 +161,17 @@ vector<set<tp> > IPOH(int ind){
         ans[i][v[ind].second]=maxparam;
         cerr<<"maxparam done"<<endl;
         // 満たされたinteractionの削除を行う
-        for(int j=0;j<k;j++){
-            tp newt = generatetuple();
-            // ここは探索の必要がある
-            get<0>(newt) = ip(j, ans[i][j]);
-            if(ans[i][j]!=-1 && interactions[maxparam].count(newt)){
-                interactions[maxparam].erase(newt);
+        int kumiawase = (1<<(t-1)) - 1;
+        for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+            vi interaction = vi(k,-1);
+            for(int bit=0;bit<ind;bit++){
+                if((kumiawase&(1<<bit)) == 0){
+                    continue;
+                }
+                interaction[v[bit].second] = ans[i][v[bit].second];
+            }
+            if(interactions[maxparam].count(interaction)){
+                interactions[maxparam].erase(interaction);
             }
         }
     }
@@ -172,14 +179,14 @@ vector<set<tp> > IPOH(int ind){
     return interactions;
 }
 // 指定したテストケースにインタラクションを入れることができるかチェックする
-bool checkInsertInteraction(const tp &interaction, const vector<int> &test){
+bool checkInsertInteraction(const vi &interaction, const vector<int> &test){
     bool ret = true;
-    for(int i=0;i<8;i++){
-        ip tmp = getelement(interaction, i);
-        if(tmp.first == -1){
-            break;
+    for(int i=0;i<k;i++){
+        int tmp = interaction[i];
+        if(tmp == -1){
+            continue;
         }
-        if(!(test[tmp.first] == tmp.second || test[tmp.first] == -1)){
+        if(!(test[i] == tmp || test[i] == -1)){
             ret = false;
             break;
         }
@@ -187,17 +194,17 @@ bool checkInsertInteraction(const tp &interaction, const vector<int> &test){
     return ret;
 }
 // テストケースにインタラクションを挿入する
-void insertInteraction(const tp &interaction, vector<int> &test){
-    for(int i=0;i<8;i++){
-        ip tmp = getelement(interaction, i);
-        if(tmp.first == -1){
-            break;
+void insertInteraction(const vi &interaction, vector<int> &test){
+    for(int i=0;i<k;i++){
+        int tmp = interaction[i];
+        if(tmp == -1){
+            continue;
         }
-        test[tmp.first] = tmp.second;
+        test[i] = tmp;
     }
 }
 // Algorithm: IPO_Vを実行する
-void IPOV(int ind, vector<set<tp> > &interactions){
+void IPOV(int ind, vector<set<vi> > &interactions){
     // すべてのinteractionについて調べる
     vector<vector<int> > addpair;
     for(int param=0;param<v[ind].first;param++){
@@ -233,15 +240,15 @@ void solve(){
     sort(v,v+k);
     reverse(v,v+k);
     // 大きいものt個の組み合わせを全て割り当てる
-    initGenerate(t, vector<int>());
-    // for(int i=0;i<ans.size();i++){
-    //     outputline(ans[i]);
-    // }
+    initGenerate();
+    for(int i=0;i<ans.size();i++){
+        outputline(ans[i]);
+    }
     cerr<<"init generate done"<<endl;
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
-        vector<set<tp> > interactions = IPOH(i);
-        IPOV(i, interactions);
+        vector<set<vi> > interactions = IPOH(i);
+        // IPOV(i, interactions);
     }
 }
 int main(){
@@ -253,7 +260,7 @@ int main(){
         v[i]=make_pair(tmp,i);
     }
     solve();
-    // output
+    // ouviut
     cout<<ans.size()<<endl;
     for(int i=0;i<ans.size();i++){
         outputline(ans[i]);
