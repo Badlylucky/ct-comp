@@ -4,7 +4,7 @@
 #include<set>
 #include<algorithm>
 #include<iterator>
-#include<tuple>
+#include"inputUtility.hpp"
 using namespace std;
 using vi=vector<int>;
 
@@ -250,6 +250,7 @@ void solve(){
 }
 int main(){
     // input
+    // for test
     cin>>t>>k;
     for(int i=0;i<k;i++){
         int tmp;
