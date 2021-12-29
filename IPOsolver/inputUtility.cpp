@@ -37,13 +37,13 @@ string strip(string s){
     int ind;
     // 先頭
     ind = 0;
-    while(s[ind] == ' ' || s[ind] == '\n'){
+    while(s[ind] == ' ' || s[ind] == '\n' || s[ind] == '\r'){
         ind++;
     }
     s = s.substr(ind);
     // 最後
     ind = s.size() - 1;
-    while(s[ind] == ' ' || s[ind] == '\n'){
+    while(s[ind] == ' ' || s[ind] == '\n' || s[ind] == '\r'){
         ind--;
     }
     s = s.erase(ind+1);
@@ -51,14 +51,12 @@ string strip(string s){
 }
 // ACTS formatのテストケースのケース名とテスト名を読み込む
 testSuite readACTS(string path){
-    cerr<<"readACTS"<<endl;
     ifstream ifs(path);
     string linestr;
     testSuite ret = testSuite();
     getline(ifs,linestr); // [system]
     getline(ifs,linestr); // -- specify system name
     getline(ifs,linestr); // Name: hoge
-    cerr<<linestr<<endl;
     ret.testName = strip(linestr.substr(6));
     
     getline(ifs,linestr);
@@ -167,8 +165,23 @@ void csvOutput(const string path, const testSuite &suite, const vector<vector<in
             ofs<<endl;
         }
     }
+    ofs.close();
 }
-
+void csvOutput(const string path, const vector<vector<int>> &ans){
+    ofstream ofs(path);
+    for(int i=0;i<ans.size();i++){
+        for(int j=0;j<ans[i].size();j++){
+            ofs<<ans[i][j];
+            if(j < ans[i].size() - 1){
+                ofs<<",";
+            }
+        }
+        if(i < ans.size() - 1){
+            ofs<<endl;
+        }
+    }
+    ofs.close();
+}
 // for test
 // int main(){
 //     string path = "../benchmarks/CTWedge/MCA_2.ctw";

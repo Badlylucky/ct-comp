@@ -4,3 +4,4 @@
 *.o
 *.csv
 IPOsolver/IPOsolver
+IPOsolver/output
