@@ -9,6 +9,7 @@ using namespace std;
 using vi=vector<int>;
 
 vector<vector<int> > ans;
+vector<vector<int>> paramcnt;
 int t=2;
 int k;
 pair<int,int> v[20];
@@ -25,6 +26,17 @@ int popcount(unsigned int n){
 int next_combination(int sub) {
     int x = sub & -sub, y = sub + x;
     return (((sub & ~y) / x) >> 1) | y;
+}
+int minind(vector<int> &line){
+    int mincnt = 1e8-1;
+    int mini = 0;
+    for(int i=0;i<line.size();i++){
+        if(mincnt > line[i]){
+            mincnt = line[i];
+            mini = i;
+        }
+    }
+    return mini;
 }
 void outputline(vector<int> &line){
     for(int i=0;i<line.size();i++){
@@ -49,6 +61,7 @@ void initGenerate(){
         int tmpChoice = choice;
         for(int q = 0;q < t;++q){
             cur[v[q].second] = tmpChoice % v[q].first;
+            paramcnt[v[q].second][tmpChoice % v[q].first]++;
             tmpChoice /= v[q].first;
         }
         ans.push_back(cur);
@@ -108,6 +121,7 @@ vector<set<vi> > IPOH(int ind){
     // 最初のv[ind]個は順番に割り付けを行う
     for(int i=0;i<v[ind].first;i++){
         ans[i][v[ind].second]=i;
+        paramcnt[v[ind].second][i]++;
         // 満たされたinteractionの削除を行う
         int kumiawase = (1<<(t-1)) - 1;
         for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
@@ -156,6 +170,7 @@ vector<set<vi> > IPOH(int ind){
         }
         // 決まった値で更新する
         ans[i][v[ind].second]=maxparam;
+        paramcnt[v[ind].second][maxparam]++;
         // cerr<<"maxparam done"<<endl;
         // 満たされたinteractionの削除を行う
         int kumiawase = (1<<(t-1)) - 1;
@@ -227,12 +242,24 @@ void IPOV(int ind, vector<set<vi> > &interactions){
         }
         // 全列挙が終わったら突っ込む
         for(int i=0;i<addpair.size();i++){
+            // 空白の場所をチェックして埋める
+            for(int j=0;j<ind;j++){
+                if(addpair[i][v[j].second] == -1){
+                    // 最も登場回数が少ないもので埋める
+                    addpair[i][v[j].second] = minind(paramcnt[v[j].second]);
+                    paramcnt[v[j].second][addpair[i][v[j].second]]++; 
+                }
+            }
             ans.push_back(addpair[i]);
         }
     }
     return;
 }
 void solve(){
+    paramcnt = vector<vector<int>>(k);
+    for(int i=0;i<k;i++){
+        paramcnt[i] = vector<int>(v[i].first, 0);
+    }
     // count all interactions
     sort(v,v+k);
     reverse(v,v+k);

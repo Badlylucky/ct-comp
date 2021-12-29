@@ -22,6 +22,7 @@ def getCTWedge():
 def runBench(files, strength):
     results = {}
     for file in files:
+        print(file)
         start = time.time()
         subprocess.call([buildpath+'IPOsolver', str(strength), file])
         calctime = time.time() - start
