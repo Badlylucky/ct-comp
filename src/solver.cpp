@@ -1,0 +1,296 @@
+#include<iostream>
+#include<vector>
+#include<utility>
+#include<set>
+#include<algorithm>
+#include<iterator>
+#include"inputUtility.hpp"
+using namespace std;
+using vi=vector<int>;
+
+vector<vector<int> > ans;
+vector<vector<int>> paramcnt;
+int t=2;
+int k;
+pair<int,int> v[20];
+int popcount(unsigned int n){
+    int ret=0;
+    for(unsigned int i=0;i<32;i++){
+        if(n&(1<<i)){
+            ret++;
+        }
+    }
+    return ret;
+}
+// https://qiita.com/drken/items/7c6ff2aa4d8fce1c9361#8-next_combination
+int next_combination(int sub) {
+    int x = sub & -sub, y = sub + x;
+    return (((sub & ~y) / x) >> 1) | y;
+}
+int minind(vector<int> &line){
+    int mincnt = 1e8-1;
+    int mini = 0;
+    for(int i=0;i<line.size();i++){
+        if(mincnt > line[i]){
+            mincnt = line[i];
+            mini = i;
+        }
+    }
+    return mini;
+}
+void outputline(vector<int> &line){
+    for(int i=0;i<line.size();i++){
+        cout<<line[i];
+        if(i<line.size()-1){
+            cout<<',';
+        }else{
+            cout<<endl;
+        }
+    }
+    return;
+}
+//最初のt個分の組み合わせを決定し、テストケースを生成する
+void initGenerate(){
+    // 同値な言い換え
+    int now = 1;
+    for(int i = 0;i < t;++i){
+        now *= v[i].first;
+    }
+    for(int choice = 0;choice < now;++choice){
+        vector<int> cur = vi(k,-1);
+        int tmpChoice = choice;
+        for(int q = 0;q < t;++q){
+            cur[v[q].second] = tmpChoice % v[q].first;
+            paramcnt[v[q].second][tmpChoice % v[q].first]++;
+            tmpChoice /= v[q].first;
+        }
+        ans.push_back(cur);
+    }
+}
+// t-1個分の組み合わせを全列挙する。
+// cnt: 中間変数
+// kumi: どの値を使うか
+// val: 現在収容している組合せ
+void enumerateCombination(const vector<int> &kumi, vector<vector<int>> &ret){
+    int now = 1;
+    for(int i=0;i<kumi.size();i++){
+        now *= v[kumi[i]].first;
+    }
+    for(int choice = 0;choice < now;++choice){
+        vector<int> cur = vi(k, -1);
+        int tmpChoice = choice;
+        for(int q=0;q<kumi.size();q++){
+            cur[v[kumi[q]].second] = tmpChoice % v[kumi[q]].first;
+            tmpChoice /= v[kumi[q]].first;
+        }
+        ret.push_back(cur);
+    }
+    return;
+}
+vector<set<vi> > enumerateInteractions(int ind) {
+    vector<set<vi>> interactions(v[ind].first);
+    vector<int> target;
+    // indより前のものについて(t-1)個組の組合せを列挙する
+    int i = (1<<(t-1)) - 1;
+    for(;i<(1<<ind);i = next_combination(i)){
+        target.clear();
+        // 得られたbit列をtargetに分割する
+        for(int bit=0;bit<ind;bit++){
+            if(i&(1<<bit)){
+                target.push_back(bit);
+            }
+        }
+        // targetをもとにenumetrateCombinationを呼び出す
+        vector<vector<int>> ret;
+        enumerateCombination(target, ret);
+        // retとtargetから挿入するinteractionを列挙する
+        for(int i=0;i<ret.size();i++){
+            // interactionの復元が終わったら挿入する
+            for(int j=0;j<v[ind].first;j++){
+                interactions[j].insert(ret[i]);
+            }
+        }
+    }
+    return interactions;
+}
+// Algorithm: IPO_Hを実行する
+vector<set<vi> > IPOH(int ind){
+    // interactionのうちindが絡むものを全て列挙する
+    vector<set<vi> > interactions = enumerateInteractions(ind);
+    // 最初のv[ind]個は順番に割り付けを行う
+    for(int i=0;i<v[ind].first;i++){
+        ans[i][v[ind].second]=i;
+        paramcnt[v[ind].second][i]++;
+        // 満たされたinteractionの削除を行う
+        int kumiawase = (1<<(t-1)) - 1;
+        for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+            vi interaction = vi(k,-1);
+            for(int bit=0;bit<ind;bit++){
+                if((kumiawase&(1<<bit)) == 0){
+                    continue;
+                }
+                interaction[v[bit].second] = ans[i][v[bit].second];
+            }
+            if(interactions[i].count(interaction)){
+                interactions[i].erase(interaction);
+            }
+        }
+    }
+    // それ以降は貪欲に割り付ける
+    for(int i=v[ind].first;i<ans.size();i++){
+        int maxparam=-1;
+        int maxcnt=-1;
+        // パラメータ全てについて関連するinteractionを列挙
+        // i番目のテストケースについて、パラメータjをv[ind].secondに割り当てる
+        // それまでにあるのはjテストケース
+        for(int j=0;j<v[ind].first;j++){
+            int cnt=0;
+            int kumiawase = (1<<(t-1)) - 1;
+            for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+                vi interaction = vi(k,-1);
+                for(int bit=0;bit<ind;bit++){
+                    if((kumiawase&(1<<bit)) == 0){
+                        continue;
+                    }
+                    interaction[v[bit].second] = ans[i][v[bit].second];
+                }
+                if(interactions[j].count(interaction)){
+                    cnt++;
+                }
+            }
+            if(cnt>maxcnt){
+                maxcnt=cnt;
+                maxparam=j;
+            }
+        }
+        // 決まった値で更新する
+        ans[i][v[ind].second]=maxparam;
+        paramcnt[v[ind].second][maxparam]++;
+        // 満たされたinteractionの削除を行う
+        int kumiawase = (1<<(t-1)) - 1;
+        for(;kumiawase<(1<<ind);kumiawase = next_combination(kumiawase)){
+            vi interaction = vi(k,-1);
+            for(int bit=0;bit<ind;bit++){
+                if((kumiawase&(1<<bit)) == 0){
+                    continue;
+                }
+                interaction[v[bit].second] = ans[i][v[bit].second];
+            }
+            if(interactions[maxparam].count(interaction)){
+                interactions[maxparam].erase(interaction);
+            }
+        }
+    }
+    return interactions;
+}
+// 指定したテストケースにインタラクションを入れることができるかチェックする
+bool checkInsertInteraction(const vi &interaction, const vector<int> &test){
+    bool ret = true;
+    for(int i=0;i<k;i++){
+        int tmp = interaction[i];
+        if(tmp == -1){
+            continue;
+        }
+        if(!(test[i] == tmp || test[i] == -1)){
+            ret = false;
+            break;
+        }
+    }
+    return ret;
+}
+// テストケースにインタラクションを挿入する
+void insertInteraction(const vi &interaction, vector<int> &test){
+    for(int i=0;i<k;i++){
+        int tmp = interaction[i];
+        if(tmp == -1){
+            continue;
+        }
+        test[i] = tmp;
+    }
+}
+// Algorithm: IPO_Vを実行する
+void IPOV(int ind, vector<set<vi> > &interactions){
+    // すべてのinteractionについて調べる
+    vector<vector<int> > addpair;
+    for(int param=0;param<v[ind].first;param++){
+        // 全列挙を行う
+        addpair.clear();
+        for(auto itr = interactions[param].begin();itr != interactions[param].end(); itr++){
+            // 過去の追加列を全て調べて、あればそこに入れる
+            bool newflag = true;
+            for(int i=0;i<addpair.size();i++){
+                if(checkInsertInteraction(*itr, addpair[i])) {
+                    insertInteraction(*itr, addpair[i]);
+                    newflag = false;
+                    break;
+                }
+            }
+            // 入れられる場所がなければ新しく作る
+            if(newflag) {
+                vector<int> t(k,-1);
+                t[v[ind].second] = param;
+                insertInteraction(*itr, t);
+                addpair.push_back(t);
+            }
+        }
+        // 全列挙が終わったら突っ込む
+        for(int i=0;i<addpair.size();i++){
+            // 空白の場所をチェックして埋める
+            for(int j=0;j<ind;j++){
+                if(addpair[i][v[j].second] == -1){
+                    // 最も登場回数が少ないもので埋める
+                    addpair[i][v[j].second] = minind(paramcnt[v[j].second]);
+                    paramcnt[v[j].second][addpair[i][v[j].second]]++; 
+                }
+            }
+            ans.push_back(addpair[i]);
+        }
+    }
+    return;
+}
+void solve(){
+    paramcnt = vector<vector<int>>(k);
+    for(int i=0;i<k;i++){
+        paramcnt[i] = vector<int>(v[i].first, 0);
+    }
+    // count all interactions
+    sort(v,v+k);
+    reverse(v,v+k);
+    // 大きいものt個の組み合わせを全て割り当てる
+    initGenerate();
+    // 残りのk-t個について調べる
+    for(int i=t;i<k;i++){
+        vector<set<vi> > interactions = IPOH(i);
+        IPOV(i, interactions);
+    }
+}
+int main(int argc, char** argv){
+    if (argc != 3) {
+        cerr<<"Usage: IPOsolver (strength) (input_file_path)"<<endl;
+        return 1;
+    }
+    // read strength
+    string arg = argv[1];
+    t = stoi(arg);
+    // read path
+    arg = argv[2];
+    testSuite suites = readFile(arg);
+    k = suites.caseName.size();
+    for(int i=0;i<k;i++){
+        v[i] = make_pair(suites.caseName[i].size(), i);
+    }
+    // solve
+    solve();
+    // output
+    cout<<ans.size()<<endl;
+    string outputFile;
+    if(arg.find("ACTS") != string::npos){
+        outputFile = "./" + suites.testName;
+        outputFile += ".csv";
+    }else{
+        outputFile = "./" + suites.testName;
+        outputFile += ".csv";
+    }
+    csvOutput(outputFile, ans);
+    return 0;
+}
