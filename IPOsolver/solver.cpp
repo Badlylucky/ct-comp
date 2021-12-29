@@ -92,13 +92,9 @@ vector<set<vi> > enumerateInteractions(int ind) {
         enumerateCombination(target, ret);
         // retとtargetから挿入するinteractionを列挙する
         for(int i=0;i<ret.size();i++){
-            vi tmp = vi(k,-1);
-            for(int j=0;j<ret[i].size();j++){
-                tmp[target[j]] = ret[i][j];
-            }
             // interactionの復元が終わったら挿入する
             for(int j=0;j<v[ind].first;j++){
-                interactions[j].insert(tmp);
+                interactions[j].insert(ret[i]);
             }
         }
     }
@@ -130,7 +126,6 @@ vector<set<vi> > IPOH(int ind){
     cerr<<"first edit done"<<endl;
     // それ以降は貪欲に割り付ける
     for(int i=v[ind].first;i<ans.size();i++){
-        cerr<<i<<endl;
         int maxparam=-1;
         int maxcnt=-1;
         // パラメータ全てについて関連するinteractionを列挙
@@ -147,11 +142,13 @@ vector<set<vi> > IPOH(int ind){
                     }
                     interaction[v[bit].second] = ans[i][v[bit].second];
                 }
+                // outputline(interaction);
+                // cerr<<interactions[j].count(interaction)<<endl;
                 if(interactions[j].count(interaction)){
                     cnt++;
                 }
             }
-            cerr<<cnt<<endl;
+            // cerr<<cnt<<endl;
             if(cnt>maxcnt){
                 maxcnt=cnt;
                 maxparam=j;
@@ -248,7 +245,7 @@ void solve(){
     // 残りのk-t個について調べる
     for(int i=t;i<k;i++){
         vector<set<vi> > interactions = IPOH(i);
-        // IPOV(i, interactions);
+        IPOV(i, interactions);
     }
 }
 int main(){
