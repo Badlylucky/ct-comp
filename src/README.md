@@ -1,4 +1,5 @@
 # ct-comp submission file
+Models with no constraints
 
 ## build
 
