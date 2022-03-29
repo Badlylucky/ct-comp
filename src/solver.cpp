@@ -291,6 +291,6 @@ int main(int argc, char** argv){
         outputFile = "./" + suites.testName;
         outputFile += ".csv";
     }
-    csvOutput(outputFile, ans);
+    csvOutput(outputFile, suites, ans);
     return 0;
 }
